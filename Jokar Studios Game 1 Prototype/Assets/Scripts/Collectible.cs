@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class Collectible : MonoBehaviour
 {
-   public float rotateSpeed;
-   public Vector3 rotateDir = new Vector3();
+    public int CollectibleValue;
+    public float rotateSpeed;
+    public Vector3 rotateDir = new Vector3();
+    public CollectibleType collectibleType;
     
 
     private void Update()
@@ -19,4 +21,10 @@ public class Collectible : MonoBehaviour
    //   //  Destroy(gameObject);
 
    // }
+
+    public enum CollectibleType
+    {
+        ammo,
+        health,
+    }
 }

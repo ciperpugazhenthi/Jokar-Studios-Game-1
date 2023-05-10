@@ -27,7 +27,12 @@ namespace StarterAssets
         {
             starterAssetsInputs.SprintInput(virtualSprintState);
         }
-        
+
+        public void VirtualAimInput(bool virtualSprintState)
+        {
+            starterAssetsInputs.AimInput(virtualSprintState);
+        }
+
     }
 
 }

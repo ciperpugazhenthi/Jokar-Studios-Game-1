@@ -17,12 +17,16 @@ public class TPSHandler : MonoBehaviour
     [SerializeField] private float aimSensitivity;
     [SerializeField] private float coolDownTime;
     [SerializeField] private float maxHealthPoints;
+    [SerializeField] private float AttackRange;
     [SerializeField] private int usableammosCount = 5;
     [SerializeField] private int maxAmmos = 20;
     [SerializeField] private float hitRate;
     private ThirdPersonController thirdPersonController;
     private StarterAssetsInputs starterAssetsInputs;
     private Animator animator;
+
+    [SerializeField]
+    LayerMask enemyLayer;
 
     [SerializeField]
     private Transform rayHitPointObject;
@@ -40,7 +44,8 @@ public class TPSHandler : MonoBehaviour
     private float healthPoints;
     private float timeElapsed;
 
-    private bool doCoolDownTimer = false;
+
+    private bool doCoolDownTimer = false, doAim = false, enemyInAttackRange;
     private void Awake()
     {
         thirdPersonController = GetComponent<ThirdPersonController>();
@@ -66,7 +71,7 @@ public class TPSHandler : MonoBehaviour
     {
         Vector3 mouseWorldPosition = Vector3.zero;
         Vector2 screenCenterPoint = new Vector2(Screen.width / 2f, Screen.height / 2f);
-
+        enemyInAttackRange = Physics.CheckSphere(transform.position, AttackRange, enemyLayer);
         Ray ray = Camera.main.ScreenPointToRay(screenCenterPoint);
         if (Physics.Raycast(ray, out RaycastHit raycastHit, 999f, aimColliderLayerMask))
         {
@@ -82,7 +87,7 @@ public class TPSHandler : MonoBehaviour
         {
             CoolDownTimer();
         }
-        if (starterAssetsInputs.aim)
+        if (starterAssetsInputs.aim || doAim)
         {
             aimVirtualCamera.gameObject.SetActive(true);
             thirdPersonController.SetSensitivity(aimSensitivity);
@@ -109,7 +114,7 @@ public class TPSHandler : MonoBehaviour
             //twoboneConstraints.weight = Mathf.Lerp(0, 1, Time.deltaTime * 10f);
         }
 
-        if (starterAssetsInputs.shoot && starterAssetsInputs.aim)
+        if ((starterAssetsInputs.shoot || enemyInAttackRange) && (starterAssetsInputs.aim || doAim))
         {
             /*            Vector3 aimDir = (mouseWorldPosition - projectileSpawningPoint.position).normalized;
                         Instantiate(projectileObject, projectileSpawningPoint.position, Quaternion.LookRotation(aimDir, Vector3.up));*/
@@ -117,7 +122,7 @@ public class TPSHandler : MonoBehaviour
             //camAnim.Play(camAnim.clip.name);
             Debug.Log("trying to shoot");
             Vector3 aimDir = (mouseWorldPosition - projectileSpawningPoint.position).normalized;
-            if(remainingAmmos < maxAmmos && remainingAmmos > 0)
+            if(remainingAmmos <= maxAmmos && remainingAmmos >= 0)
             {
                 if (currentUsedAmmo < usableammosCount)
                 {
@@ -168,9 +173,10 @@ public class TPSHandler : MonoBehaviour
         }
         if (other.tag == "Ammo")
         {
-            if (usableammosCount < maxAmmos && usableammosCount >= 0)
-                usableammosCount += 1;
-            else
+            var collectible = other.GetComponent<Collectible>();
+            if (remainingAmmos < maxAmmos || remainingAmmos < 0)
+                remainingAmmos += collectible.CollectibleValue;
+            else if(remainingAmmos == maxAmmos)
                 Debug.Log("Ammo full");
         }
     }
@@ -199,5 +205,19 @@ public class TPSHandler : MonoBehaviour
             Debug.Log("Reload Ended");
 
         }
+    }
+
+    public void SetAim()
+    {
+        if (!doAim)
+            doAim = true;
+        else
+            doAim = false;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, AttackRange);
     }
 }

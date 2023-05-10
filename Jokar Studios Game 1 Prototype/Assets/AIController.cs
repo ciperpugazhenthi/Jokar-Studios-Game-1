@@ -170,6 +170,8 @@ public class AIController : MonoBehaviour
     private async void enemyDeath()
     {
         await Task.Delay((int)deathTime*1000);
+        gameObject.GetComponent<Rigidbody>().isKinematic = false;
+        gameObject.GetComponent<Rigidbody>().useGravity = true;
         Debug.Log("Destroyed");
         gameObject.SetActive(false);
     }
